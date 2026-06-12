@@ -1,0 +1,234 @@
+name: Terraform CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'infra/terraform/**'
+      - '.github/workflows/terraform.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'infra/terraform/**'
+      - '.github/workflows/terraform.yml'
+
+env:
+  TF_VERSION: "1.6.0"
+  AWS_REGION: "us-east-1"
+
+jobs:
+  # ---------------------------------------------------------------
+  # Terraform Format & Validate
+  # ---------------------------------------------------------------
+  fmt-validate:
+    name: Format & Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive infra/terraform/
+
+      - name: Terraform Init (root)
+        working-directory: infra/terraform
+        run: terraform init -backend=false
+
+      - name: Terraform Validate (root)
+        working-directory: infra/terraform
+        run: terraform validate
+
+      - name: Terraform Init (dev)
+        working-directory: infra/terraform/environments/dev
+        run: terraform init -backend=false
+
+      - name: Terraform Validate (dev)
+        working-directory: infra/terraform/environments/dev
+        run: terraform validate
+
+      - name: Terraform Init (staging)
+        working-directory: infra/terraform/environments/staging
+        run: terraform init -backend=false
+
+      - name: Terraform Validate (staging)
+        working-directory: infra/terraform/environments/staging
+        run: terraform validate
+
+      - name: Terraform Init (prod)
+        working-directory: infra/terraform/environments/prod
+        run: terraform init -backend=false
+
+      - name: Terraform Validate (prod)
+        working-directory: infra/terraform/environments/prod
+        run: terraform validate
+
+  # ---------------------------------------------------------------
+  # Terraform Plan - Dev
+  # ---------------------------------------------------------------
+  plan-dev:
+    name: Plan (dev)
+    needs: fmt-validate
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_DEV }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        working-directory: infra/terraform/environments/dev
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: infra/terraform/environments/dev
+        run: terraform plan -var="db_password=${{ secrets.DB_PASSWORD_DEV }}" -input=false -out=tfplan
+
+      - name: Upload Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-dev
+          path: infra/terraform/environments/dev/tfplan
+
+  # ---------------------------------------------------------------
+  # Terraform Apply - Dev (on push to develop)
+  # ---------------------------------------------------------------
+  apply-dev:
+    name: Apply (dev)
+    needs: fmt-validate
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_DEV }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        working-directory: infra/terraform/environments/dev
+        run: terraform init
+
+      - name: Terraform Apply
+        working-directory: infra/terraform/environments/dev
+        run: terraform apply -var="db_password=${{ secrets.DB_PASSWORD_DEV }}" -auto-approve -input=false
+
+  # ---------------------------------------------------------------
+  # Terraform Plan - Staging
+  # ---------------------------------------------------------------
+  plan-staging:
+    name: Plan (staging)
+    needs: fmt-validate
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_STAGING }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        working-directory: infra/terraform/environments/staging
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: infra/terraform/environments/staging
+        run: terraform plan -var="db_password=${{ secrets.DB_PASSWORD_STAGING }}" -input=false
+
+  # ---------------------------------------------------------------
+  # Terraform Plan - Prod
+  # ---------------------------------------------------------------
+  plan-prod:
+    name: Plan (prod)
+    needs: fmt-validate
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_PROD }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        working-directory: infra/terraform/environments/prod
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: infra/terraform/environments/prod
+        run: terraform plan -var="db_password=${{ secrets.DB_PASSWORD_PROD }}" -input=false
+
+  # ---------------------------------------------------------------
+  # Terraform Apply - Prod (on push to main)
+  # ---------------------------------------------------------------
+  apply-prod:
+    name: Apply (prod)
+    needs: fmt-validate
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_PROD }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        working-directory: infra/terraform/environments/prod
+        run: terraform init
+
+      - name: Terraform Apply
+        working-directory: infra/terraform/environments/prod
+        run: terraform apply -var="db_password=${{ secrets.DB_PASSWORD_PROD }}" -auto-approve -input=false

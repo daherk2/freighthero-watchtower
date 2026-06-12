@@ -1,0 +1,15 @@
+# Build configuration for Railway
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile.railway"
+
+# Deploy configuration
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 60
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# Environment variables
+[deploy.env]
+PYTHON_VERSION = "3.12"

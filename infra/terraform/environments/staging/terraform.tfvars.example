@@ -1,0 +1,6 @@
+# Staging environment variables
+# Copy this file to terraform.tfvars and fill in the values
+
+aws_region    = "us-east-1"
+db_password   = "CHANGE_ME_use_a_secure_password"
+alarm_email   = "staging-team@freighthero.com"

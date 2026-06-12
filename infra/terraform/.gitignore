@@ -1,0 +1,70 @@
+# Terraform state files
+*.tfstate
+*.tfstate.*
+*.tfplan
+
+# Terraform variables files (may contain secrets)
+*.tfvars
+*.tfvars.json
+!example.tfvars
+
+# Terraform lock file (should be committed but sometimes causes issues)
+.terraform.lock.hcl
+
+# Terraform provider and module cache
+.terraform/
+**/.terraform/
+
+# Terraform plan files
+*.plan
+
+# Crash logs
+crash.log
+crash.*.log
+
+# Override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# .tfrc files (CLI configuration)
+.tfrc
+
+# Sensitive files
+*.pem
+*.key
+*.pub
+id_rsa*
+id_ed25519*
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.env
+.venv/
+venv/
+
+# Node
+node_modules/
+.npm
+
+# Coverage
+coverage/
+*.cover
