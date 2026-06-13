@@ -24,7 +24,9 @@ interface LoadSelectorProps {
 }
 
 export function LoadSelector({ onLoadChange, showViewDetails, navigate }: LoadSelectorProps) {
-  const [selectedLoadId, setSelectedLoadId] = React.useState<string>('');
+  const [selectedLoadId, setSelectedLoadId] = React.useState<string>(
+    localStorage.getItem(STORAGE_KEY) || ''
+  );
   const [loads, setLoads] = React.useState<Load[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [selectedLoad, setSelectedLoad] = React.useState<Load | null>(null);
@@ -35,13 +37,11 @@ export function LoadSelector({ onLoadChange, showViewDetails, navigate }: LoadSe
     try {
       const data = await loadsApi.list() as Load[];
       setLoads(data);
-      // Restore persisted load ID from localStorage after loads are loaded
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved && data.some((l: Load) => l.load_id === saved)) {
-        setSelectedLoadId(saved);
-      } else if (saved) {
+      if (saved && !data.some((l: Load) => l.load_id === saved)) {
         // Saved load no longer exists, clear it
         localStorage.removeItem(STORAGE_KEY);
+        setSelectedLoadId('');
       }
     } catch (err) {
       console.error('Failed to fetch loads:', err);
