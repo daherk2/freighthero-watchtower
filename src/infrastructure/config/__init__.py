@@ -63,6 +63,9 @@ class Settings(BaseSettings):
     langsmith_api_key: str = ""
     langsmith_project: str = "freighthero-watchtower"
 
+    # Auth
+    api_key: str = "fh-wt-2026"
+
     # Geofence defaults
     default_geofence_radius_miles: int = 1
 

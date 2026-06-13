@@ -1,3 +1,4 @@
+import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -12,6 +13,8 @@ import { AgentDebugger } from '@/screens/AgentDebugger';
 import { Monitoring } from '@/screens/Monitoring';
 import { NewLoad } from '@/screens/NewLoad';
 import { Simulation } from '@/screens/Simulation';
+import { Login } from '@/screens/Login';
+import { AUTH_KEY } from '@/api/client';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,6 +26,12 @@ const queryClient = new QueryClient({
 });
 
 export default function App() {
+  const [authed, setAuthed] = React.useState(() => !!localStorage.getItem(AUTH_KEY));
+
+  if (!authed) {
+    return <Login onAuth={() => setAuthed(true)} />;
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
