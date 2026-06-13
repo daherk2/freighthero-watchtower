@@ -249,15 +249,15 @@ export function AgentRunDetail() {
                       <Typography variant="caption" sx={{ color: '#64748b' }}>Step {i + 1} {(tc.created_at || tc.timestamp) ? `· ${new Date(tc.created_at || tc.timestamp).toLocaleTimeString()}` : ''}</Typography>
                     </Box>
                     <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, minWidth: 0 }}>
-                      <Box sx={{ minWidth: 0 }}>
+                      <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
                         <Typography variant="caption" sx={{ color: '#64748b' }}>Input</Typography>
-                        <Box component="pre" sx={{ fontSize: '0.75rem', color: '#94a3b8', bgcolor: '#111827', p: 1.5, borderRadius: 1, overflow: 'auto', maxHeight: 120, m: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                        <Box component="pre" sx={{ fontSize: '0.75rem', color: '#94a3b8', bgcolor: '#111827', p: 1.5, borderRadius: 1, overflow: 'auto', maxHeight: 120, m: 0 }}>
                           {JSON.stringify(tc.arguments, null, 2)}
                         </Box>
                       </Box>
-                      <Box sx={{ minWidth: 0 }}>
+                      <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
                         <Typography variant="caption" sx={{ color: '#64748b' }}>Output</Typography>
-                        <Box component="pre" sx={{ fontSize: '0.75rem', color: '#94a3b8', bgcolor: '#111827', p: 1.5, borderRadius: 1, overflow: 'auto', maxHeight: 120, m: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                        <Box component="pre" sx={{ fontSize: '0.75rem', color: '#94a3b8', bgcolor: '#111827', p: 1.5, borderRadius: 1, overflow: 'auto', maxHeight: 120, m: 0 }}>
                           {JSON.stringify(tc.result, null, 2)}
                         </Box>
                       </Box>
