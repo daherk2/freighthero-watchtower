@@ -13,6 +13,7 @@ from sqlalchemy import (
     JSON,
     Text,
     Index,
+    text,
     ForeignKey,
     Enum as SAEnum,
     UniqueConstraint,
@@ -214,7 +215,7 @@ class DatabaseManager:
         """Create all database tables."""
         async with self.engine.begin() as conn:
             # Create PGVector extension first
-            await conn.execute('CREATE EXTENSION IF NOT EXISTS vector')
+            await conn.execute(text('CREATE EXTENSION IF NOT EXISTS vector'))
             await conn.run_sync(Base.metadata.create_all)
 
     async def drop_tables(self):
