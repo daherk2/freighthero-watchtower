@@ -8,7 +8,7 @@ import CardContent from '@mui/material/CardContent';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { StatusChip, StateChip, LoadSelector } from '@/components/shared';
+import { StatusChip, StateChip, LoadSelector, TruncatedId } from '@/components/shared';
 import { useAgentRuns } from '@/api/hooks';
 import type { AgentRun } from '@/types';
 import { statusColors, memoryTypeColors } from '@/theme';
@@ -87,9 +87,9 @@ export function AgentViewer() {
                 </Box>
 
                 <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 2 }}>
-                  <Box>
+                  <Box sx={{ minWidth: 0 }}>
                     <Typography variant="caption" sx={{ color: '#64748b' }}>Load</Typography>
-                    <Typography variant="body2" sx={{ fontFamily: 'monospace', color: '#3b82f6' }}>{run.load_id}</Typography>
+                    <TruncatedId id={run.load_id} chars={10} />
                   </Box>
                   <Box>
                     <Typography variant="caption" sx={{ color: '#64748b' }}>Customer</Typography>
@@ -178,12 +178,10 @@ export function AgentRunDetail() {
         </IconButton>
         <Box sx={{ flex: 1 }}>
           <Typography variant="h4" sx={{ fontWeight: 700 }}>Agent Run</Typography>
-          <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+          <Box sx={{ display: 'flex', gap: 1, mt: 0.5, alignItems: 'center', flexWrap: 'wrap' }}>
             <StatusChip status={run.status} />
             <Chip label={run.workflow.replace(/_/g, ' ')} size="small" sx={{ bgcolor: '#3b82f620', color: '#3b82f6' }} />
-            <Typography variant="caption" sx={{ color: '#64748b', fontFamily: 'monospace', lineHeight: '24px' }}>
-              {run.run_id}
-            </Typography>
+            <TruncatedId id={run.run_id} chars={16} color="#64748b" />
           </Box>
         </Box>
       </Box>
@@ -194,21 +192,24 @@ export function AgentRunDetail() {
           <Card sx={{ bgcolor: '#1a2235', mb: 3 }}>
             <CardContent>
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Context</Typography>
-              {[
-                ['Load', run.load_id],
-                ['Customer', run.customer_id],
-                ['Event', run.event_id],
-                ['Branch', run.sop_branch?.replace(/_/g, ' ') || '—'],
-                ['State Before', run.state_before || '—'],
-                ['State After', run.state_after || '—'],
-                ['Started', new Date(run.started_at).toLocaleString()],
-                ['Completed', run.completed_at ? new Date(run.completed_at).toLocaleString() : '—'],
-              ].map(([label, value]) => (
+              {([
+                ['Load', run.load_id, true],
+                ['Customer', run.customer_id, false],
+                ['Event', run.event_id, true],
+                ['Branch', run.sop_branch?.replace(/_/g, ' ') || '—', false],
+                ['State Before', run.state_before || '—', false],
+                ['State After', run.state_after || '—', false],
+                ['Started', new Date(run.started_at).toLocaleString(), false],
+                ['Completed', run.completed_at ? new Date(run.completed_at).toLocaleString() : '—', false],
+              ] as [string, string, boolean][]).map(([label, value, isId]) => (
                 <Box key={label} sx={{ mb: 1.5 }}>
                   <Typography variant="caption" sx={{ color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                     {label}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#e2e8f0' }}>{value}</Typography>
+                  {isId && value && value !== '—'
+                    ? <TruncatedId id={value} chars={14} color="#e2e8f0" />
+                    : <Typography variant="body2" sx={{ color: '#e2e8f0', wordBreak: 'break-word' }}>{value}</Typography>
+                  }
                 </Box>
               ))}
               {run.error && (
@@ -247,16 +248,16 @@ export function AgentRunDetail() {
                       <Chip label={tc.tool} size="small" sx={{ bgcolor: '#22c55e20', color: '#22c55e', fontFamily: 'monospace' }} />
                       <Typography variant="caption" sx={{ color: '#64748b' }}>Step {i + 1} {(tc.created_at || tc.timestamp) ? `· ${new Date(tc.created_at || tc.timestamp).toLocaleTimeString()}` : ''}</Typography>
                     </Box>
-                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-                      <Box>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, minWidth: 0 }}>
+                      <Box sx={{ minWidth: 0 }}>
                         <Typography variant="caption" sx={{ color: '#64748b' }}>Input</Typography>
-                        <Box component="pre" sx={{ fontSize: '0.75rem', color: '#94a3b8', bgcolor: '#111827', p: 1.5, borderRadius: 1, overflow: 'auto', maxHeight: 120, m: 0 }}>
+                        <Box component="pre" sx={{ fontSize: '0.75rem', color: '#94a3b8', bgcolor: '#111827', p: 1.5, borderRadius: 1, overflow: 'auto', maxHeight: 120, m: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
                           {JSON.stringify(tc.arguments, null, 2)}
                         </Box>
                       </Box>
-                      <Box>
+                      <Box sx={{ minWidth: 0 }}>
                         <Typography variant="caption" sx={{ color: '#64748b' }}>Output</Typography>
-                        <Box component="pre" sx={{ fontSize: '0.75rem', color: '#94a3b8', bgcolor: '#111827', p: 1.5, borderRadius: 1, overflow: 'auto', maxHeight: 120, m: 0 }}>
+                        <Box component="pre" sx={{ fontSize: '0.75rem', color: '#94a3b8', bgcolor: '#111827', p: 1.5, borderRadius: 1, overflow: 'auto', maxHeight: 120, m: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
                           {JSON.stringify(tc.result, null, 2)}
                         </Box>
                       </Box>
