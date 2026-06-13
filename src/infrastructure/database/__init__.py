@@ -204,12 +204,17 @@ class DatabaseManager:
     """Manages database connections and sessions."""
 
     def __init__(self, database_url: str):
+        # Import asyncpg explicitly to ensure it's available
+        import asyncpg  # noqa: F401
+        
         self.engine = create_async_engine(database_url, echo=False)
         self.async_session = async_sessionmaker(self.engine, class_=AsyncSession, expire_on_commit=False)
 
     async def create_tables(self):
         """Create all database tables."""
         async with self.engine.begin() as conn:
+            # Create PGVector extension first
+            await conn.execute('CREATE EXTENSION IF NOT EXISTS vector')
             await conn.run_sync(Base.metadata.create_all)
 
     async def drop_tables(self):
