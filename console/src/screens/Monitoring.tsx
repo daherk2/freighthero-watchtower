@@ -632,11 +632,8 @@ export function Monitoring() {
                       links: [
                         { source: 'Dispatched', target: 'On Route', value: 40 },
                         { source: 'On Route', target: 'At Delivery', value: 32 },
-                        { source: 'On Route', target: 'On Route', value: 8 },
                         { source: 'At Delivery', target: 'Delivered', value: 25 },
-                        { source: 'At Delivery', target: 'At Delivery', value: 7 },
                         { source: 'Delivered', target: 'POD Collected', value: 20 },
-                        { source: 'Delivered', target: 'Delivered', value: 5 },
                       ],
                       lineStyle: { color: 'gradient', curveness: 0.5 },
                       label: { color: '#94a3b8', fontSize: 11 },

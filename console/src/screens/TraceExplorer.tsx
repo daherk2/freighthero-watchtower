@@ -142,16 +142,31 @@ export function TraceExplorer() {
         const url = selectedLoadId ? `/api/v1/monitoring/agent-runs?load_id=${selectedLoadId}` : '/api/v1/monitoring/agent-runs';
         const res = await fetch(url);
         const runs = await res.json();
-        
+
         if (runs.length === 0) {
           setTreeArray([]);
           return;
         }
 
+        // Fetch details for runs that have tool_calls or memory_operations
+        const detailedRuns = await Promise.all(
+          runs.map(async (run: Record<string, unknown>) => {
+            const hasDetails = (run.tool_calls_count as number) > 0 || (run.memory_operations_count as number) > 0;
+            if (!hasDetails) return run;
+            try {
+              const detailRes = await fetch(`/api/v1/debugger/agent-runs/${run.run_id}`);
+              const detail = await detailRes.json();
+              return { ...run, tool_calls: detail.tool_calls || [], memory_operations: detail.memory_operations || [] };
+            } catch {
+              return run;
+            }
+          })
+        );
+
         // Build trace tree from agent runs
-        const trees: TraceNode[] = runs.map((run: Record<string, unknown>, idx: number) => {
+        const trees: TraceNode[] = detailedRuns.map((run: Record<string, unknown>, idx: number) => {
           const children: TraceNode[] = [];
-          
+
           // Add tool calls as children
           const toolCalls = (run.tool_calls || []) as Record<string, unknown>[];
           toolCalls.forEach((tc: Record<string, unknown>, i: number) => {
@@ -228,6 +243,16 @@ export function TraceExplorer() {
         ))}
       </Box>
 
+      {loading && (
+        <Typography variant="body2" sx={{ color: '#64748b', textAlign: 'center', py: 4 }}>
+          Loading traces...
+        </Typography>
+      )}
+      {!loading && treeArray.length === 0 && (
+        <Typography variant="body2" sx={{ color: '#64748b', textAlign: 'center', py: 4 }}>
+          No traces found. {selectedLoadId ? 'Try firing events in the Simulation page.' : 'Select a load to filter.'}
+        </Typography>
+      )}
       {treeArray.map((rootNode) => (
         <TraceNodeCard key={rootNode.id} node={rootNode} depth={0} />
       ))}
