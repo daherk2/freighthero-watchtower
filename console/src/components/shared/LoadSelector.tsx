@@ -8,7 +8,7 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import IconButton from '@mui/material/IconButton';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { StateChip } from './index';
+import { StateChip, TruncatedId } from './index';
 import { loadsApi } from '@/api/client';
 import type { Load } from '@/types';
 
@@ -129,9 +129,7 @@ export function LoadSelector({ onLoadChange, showViewDetails, navigate }: LoadSe
 
         {selectedLoad && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2, flexWrap: 'wrap' }}>
-            <Typography variant="caption" sx={{ fontFamily: 'monospace', color: '#3b82f6' }}>
-              {selectedLoad.load_id}
-            </Typography>
+            <TruncatedId id={selectedLoad.load_id} chars={14} />
             <StateChip state={selectedLoad.current_state} />
             <Chip label={selectedLoad.customer_id} size="small" variant="outlined" />
             {showViewDetails && navigate && (

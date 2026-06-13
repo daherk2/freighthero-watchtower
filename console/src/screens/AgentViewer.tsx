@@ -86,24 +86,24 @@ export function AgentViewer() {
                   </Typography>
                 </Box>
 
-                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 2 }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 2, minWidth: 0 }}>
                   <Box sx={{ minWidth: 0 }}>
                     <Typography variant="caption" sx={{ color: '#64748b' }}>Load</Typography>
                     <TruncatedId id={run.load_id} chars={10} />
                   </Box>
-                  <Box>
+                  <Box sx={{ minWidth: 0 }}>
                     <Typography variant="caption" sx={{ color: '#64748b' }}>Customer</Typography>
-                    <Typography variant="body2">{run.customer_id}</Typography>
+                    <Typography variant="body2" noWrap>{run.customer_id}</Typography>
                   </Box>
-                  <Box>
+                  <Box sx={{ minWidth: 0 }}>
                     <Typography variant="caption" sx={{ color: '#64748b' }}>Branch</Typography>
-                    <Typography variant="body2">{run.sop_branch?.replace(/_/g, ' ') || '—'}</Typography>
+                    <Typography variant="body2" noWrap>{run.sop_branch?.replace(/_/g, ' ') || '—'}</Typography>
                   </Box>
-                  <Box>
+                  <Box sx={{ minWidth: 0 }}>
                     <Typography variant="caption" sx={{ color: '#64748b' }}>State</Typography>
-                    <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', flexWrap: 'wrap' }}>
                       {run.state_before && <StateChip state={run.state_before} />}
-                      <Typography variant="caption" sx={{ color: '#64748b' }}>→</Typography>
+                      {run.state_after && <Typography variant="caption" sx={{ color: '#64748b' }}>→</Typography>}
                       {run.state_after && <StateChip state={run.state_after} />}
                     </Box>
                   </Box>
@@ -282,7 +282,7 @@ export function AgentRunDetail() {
                     <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
                       <Chip label={mem.operation} size="small" sx={{ bgcolor: '#06b6d420', color: '#06b6d4' }} />
                       <Chip label={mem.memory_type} size="small" sx={{ bgcolor: `${memoryTypeColors[mem.memory_type]}20`, color: memoryTypeColors[mem.memory_type] }} />
-                      <Chip label={`${mem.scope}:${mem.scope_id}`} size="small" variant="outlined" />
+                      <Chip label={`${mem.scope}:${String(mem.scope_id).slice(0, 10)}`} size="small" variant="outlined" sx={{ fontFamily: 'monospace', fontSize: '0.7rem' }} />
                     </Box>
                     <Typography variant="body2" sx={{ color: '#e2e8f0' }}>{mem.content}</Typography>
                     {mem.tags && mem.tags.length > 0 && (

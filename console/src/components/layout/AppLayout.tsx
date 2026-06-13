@@ -30,6 +30,8 @@ export function AppLayout() {
           component="main"
           sx={{
             flexGrow: 1,
+            minWidth: 0,          // prevents flex child from overflowing its container
+            overflowX: 'hidden',  // last-resort guard against any child causing horizontal scroll
             ml: !isMobile && sidebarOpen ? `${DRAWER_WIDTH}px` : 0,
             mt: '64px',
             transition: 'margin-left 0.2s',
