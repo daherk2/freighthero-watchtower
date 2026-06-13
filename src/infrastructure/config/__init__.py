@@ -58,7 +58,7 @@ class Settings(BaseSettings):
     memory_embedding_dimensions: int = 1536
 
     # Observability
-    otel_exporter_endpoint: str = "http://localhost:4317"
+    otel_exporter_endpoint: str = ""
     otel_service_name: str = "freighthero-watchtower"
     langsmith_api_key: str = ""
     langsmith_project: str = "freighthero-watchtower"

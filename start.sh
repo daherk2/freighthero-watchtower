@@ -25,5 +25,6 @@ if [ -z "$OPENAI_API_KEY" ]; then
 fi
 echo "OPENAI_API_KEY: OK"
 
-echo "Starting uvicorn..."
-exec python -m uvicorn src.interfaces.app:app --host 0.0.0.0 --port 8000
+PORT=${PORT:-8000}
+echo "Starting uvicorn on port $PORT..."
+exec python -m uvicorn src.interfaces.app:app --host 0.0.0.0 --port "$PORT"
