@@ -61,8 +61,8 @@ class LoadModel(Base):
     load_data: Mapped[dict] = mapped_column(JSON, nullable=False)
     current_state: Mapped[str] = mapped_column(SAEnum(LoadState), nullable=False)
     current_eta_utc: Mapped[str | None] = mapped_column(String(255))
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
 
     __table_args__ = (Index("ix_loads_customer_id", "customer_id"),)
 
@@ -79,8 +79,8 @@ class EventModel(Base):
     occurred_at: Mapped[str] = mapped_column(String(255), nullable=False)
     event_data: Mapped[dict] = mapped_column(JSON, nullable=False)
     processing_status: Mapped[str] = mapped_column(String(50), default="pending")
-    processed_at: Mapped[datetime | None] = mapped_column(DateTime)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
 
     __table_args__ = (Index("ix_events_load_id", "load_id"),)
 
@@ -97,7 +97,7 @@ class ToolCallModel(Base):
     tool: Mapped[str] = mapped_column(String(100), nullable=False)
     arguments: Mapped[dict] = mapped_column(JSON, default=dict)
     result: Mapped[dict] = mapped_column(JSON, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
 
     __table_args__ = (
         Index("ix_tool_calls_load_id", "load_id"),
@@ -124,8 +124,8 @@ class AgentRunModel(Base):
     status: Mapped[str] = mapped_column(String(50), default="pending")
     error: Mapped[str | None] = mapped_column(Text)
     trace_id: Mapped[str | None] = mapped_column(String(255))
-    started_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    completed_at: Mapped[datetime | None] = mapped_column(DateTime)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     __table_args__ = (
         Index("ix_agent_runs_load_id", "load_id"),
@@ -145,8 +145,8 @@ class TimerModel(Base):
     fire_at_utc: Mapped[str] = mapped_column(String(255), nullable=False)
     reason: Mapped[str] = mapped_column(Text)
     status: Mapped[str] = mapped_column(String(50), default="scheduled")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    fired_at: Mapped[datetime | None] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+    fired_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     __table_args__ = (Index("ix_timers_load_id", "load_id"),)
 
@@ -169,9 +169,9 @@ class LTMModel(Base):
     relevance_score: Mapped[float] = mapped_column(Float, default=1.0)
     access_count: Mapped[int] = mapped_column(Integer, default=0)
     content_type: Mapped[str] = mapped_column(String(50), default="fact")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    expires_at: Mapped[datetime | None] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     __table_args__ = (
         Index("ix_ltm_memory_scope", "scope", "scope_id"),
@@ -194,7 +194,7 @@ class MemoryOperationLogModel(Base):
     scope_id: Mapped[str] = mapped_column(String(255), nullable=False)
     content: Mapped[str | None] = mapped_column(Text)
     result: Mapped[dict] = mapped_column(JSON, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
 
     __table_args__ = (Index("ix_memory_ops_load_id", "load_id"),)
 
@@ -214,8 +214,9 @@ class DatabaseManager:
     async def create_tables(self):
         """Create all database tables."""
         async with self.engine.begin() as conn:
-            # Create PGVector extension first
             await conn.execute(text('CREATE EXTENSION IF NOT EXISTS vector'))
+            # Drop and recreate to apply schema changes (safe on fresh deploy)
+            await conn.run_sync(Base.metadata.drop_all)
             await conn.run_sync(Base.metadata.create_all)
 
     async def drop_tables(self):
