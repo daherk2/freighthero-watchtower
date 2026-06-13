@@ -671,53 +671,74 @@ export function Simulation() {
 
       {/* Event Log */}
       <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="h6" sx={{ mb: 2 }}>Event Log</Typography>
-          {eventLog.length === 0 ? (
-            <Typography variant="body2" sx={{ color: '#64748b', textAlign: 'center', py: 3 }}>
-              No events fired yet. Select a load and click an event button to start the simulation.
-            </Typography>
-          ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {eventLog.map((log) => (
-                <Box
-                  key={log.id}
-                  sx={{
-                    p: 1.5,
-                    borderRadius: 1,
-                    bgcolor: log.status === 'success' ? '#0f2a1a' : log.status === 'error' ? '#2a0f0f' : '#1a1a2a',
-                    border: '1px solid',
-                    borderColor: log.status === 'success' ? '#22c55e44' : log.status === 'error' ? '#ef444444' : '#3b82f644',
-                  }}
-                >
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      {log.scenario}
-                    </Typography>
-                    <Chip
-                      size="small"
-                      label={log.status}
-                      color={log.status === 'success' ? 'success' : log.status === 'error' ? 'error' : 'info'}
-                      sx={{ fontSize: '0.7rem' }}
-                    />
-                  </Box>
-                  {log.workflow && (
-                    <Typography variant="caption" sx={{ color: '#22c55e' }}>
-                      → Workflow: {log.workflow}
-                    </Typography>
-                  )}
-                  {log.message && log.status === 'error' && (
-                    <Typography variant="caption" sx={{ color: '#ef4444', display: 'block' }}>
-                      {log.message}
-                    </Typography>
-                  )}
-                  <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.5 }}>
-                    {new Date(log.timestamp).toLocaleTimeString()}
-                  </Typography>
-                </Box>
-              ))}
+        <CardContent sx={{ p: 0 }}>
+          <Box sx={{ px: 2.5, pt: 2, pb: loading ? 0 : 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Typography variant="h6">Event Log</Typography>
+              {eventLog.length > 0 && (
+                <Chip label={eventLog.length} size="small" sx={{ bgcolor: '#243049', color: '#64748b', height: 18, fontSize: '0.65rem' }} />
+              )}
             </Box>
-          )}
+            {eventLog.length > 0 && (
+              <Button
+                size="small"
+                sx={{ fontSize: '0.7rem', color: '#64748b', '&:hover': { color: '#94a3b8' } }}
+                onClick={() => setEventLog([])}
+              >
+                Clear
+              </Button>
+            )}
+          </Box>
+
+          {loading && <LinearProgress sx={{ mx: 0, height: 2, bgcolor: '#243049', '& .MuiLinearProgress-bar': { bgcolor: '#3b82f6' } }} />}
+
+          <Box sx={{ px: 2.5, pb: 2, pt: loading ? 1 : 0 }}>
+            {eventLog.length === 0 ? (
+              <Typography variant="body2" sx={{ color: '#64748b', textAlign: 'center', py: 4 }}>
+                No events fired yet. Select a load and click an event button to start.
+              </Typography>
+            ) : (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, maxHeight: 400, overflowY: 'auto', pr: 0.5 }}>
+                {eventLog.map((log) => (
+                  <Box
+                    key={log.id}
+                    sx={{
+                      p: 1.5,
+                      borderRadius: 1,
+                      bgcolor: log.status === 'success' ? '#0f2a1a' : log.status === 'error' ? '#2a0f0f' : '#1a1a2a',
+                      border: '1px solid',
+                      borderColor: log.status === 'success' ? '#22c55e44' : log.status === 'error' ? '#ef444444' : '#3b82f644',
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, flex: 1 }}>
+                        {log.scenario}
+                      </Typography>
+                      <Chip
+                        size="small"
+                        label={log.status}
+                        color={log.status === 'success' ? 'success' : log.status === 'error' ? 'error' : 'info'}
+                        sx={{ fontSize: '0.7rem', flexShrink: 0 }}
+                      />
+                    </Box>
+                    {log.workflow && (
+                      <Typography variant="caption" sx={{ color: '#22c55e' }}>
+                        → Workflow: {log.workflow}
+                      </Typography>
+                    )}
+                    {log.message && log.status === 'error' && (
+                      <Typography variant="caption" sx={{ color: '#ef4444', display: 'block' }}>
+                        {log.message}
+                      </Typography>
+                    )}
+                    <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.5 }}>
+                      {new Date(log.timestamp).toLocaleTimeString()}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            )}
+          </Box>
         </CardContent>
       </Card>
 

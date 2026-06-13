@@ -3,6 +3,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
+import CardActionArea from '@mui/material/CardActionArea';
 import TextField from '@mui/material/TextField';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
@@ -11,7 +12,6 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import InputLabel from '@mui/material/InputLabel';
 import Switch from '@mui/material/Switch';
 import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
 import Grid from '@mui/material/Grid';
@@ -21,6 +21,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import AcUnitIcon from '@mui/icons-material/AcUnit';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useNavigate } from 'react-router-dom';
 import { loadsApi } from '@/api/client';
 
@@ -128,9 +129,17 @@ const LOAD_PROFILES: { name: string; icon: React.ReactNode; description: string;
   },
 ];
 
+interface FormErrors {
+  customer_id?: string;
+  driver_name?: string;
+  driver_phone?: string;
+}
+
 export function NewLoad() {
   const navigate = useNavigate();
   const [form, setForm] = useState<FormData>(initialForm);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [activeProfile, setActiveProfile] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [snack, setSnack] = useState<{ open: boolean; severity: 'success' | 'error'; message: string }>({
     open: false,
@@ -138,18 +147,33 @@ export function NewLoad() {
     message: '',
   });
 
+  const validate = (field: keyof FormData, value: string): string | undefined => {
+    if (field === 'customer_id' && !value) return 'Customer is required';
+    if (field === 'driver_phone' && value && !/^\+?[\d\s\-()]{7,}$/.test(value)) return 'Invalid phone number';
+    return undefined;
+  };
+
   const handleChange = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | any) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setForm((prev) => ({ ...prev, [field]: value }));
+    if (typeof value === 'string') {
+      const err = validate(field, value);
+      setErrors((prev) => ({ ...prev, [field]: err }));
+    }
   };
 
   const applyProfile = (profile: typeof LOAD_PROFILES[number]) => {
     setForm(profile.data);
+    setErrors({});
+    setActiveProfile(profile.name);
   };
 
   const handleSubmit = async () => {
-    if (!form.customer_id) {
-      setSnack({ open: true, severity: 'error', message: 'Customer is required' });
+    const newErrors: FormErrors = {};
+    if (!form.customer_id) newErrors.customer_id = 'Customer is required';
+    if (form.driver_phone && !/^\+?[\d\s\-()]{7,}$/.test(form.driver_phone)) newErrors.driver_phone = 'Invalid phone number';
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
@@ -210,34 +234,64 @@ export function NewLoad() {
       </Typography>
 
       {/* Quick Profiles */}
-      <Card sx={{ mb: 3, bgcolor: '#1a2235' }}>
-        <CardContent>
-          <Typography variant="h6" sx={{ mb: 1.5 }}>Quick Profiles</Typography>
-          <Typography variant="body2" sx={{ color: '#64748b', mb: 2 }}>
-            Click a profile to auto-fill the form with realistic data
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
-            {LOAD_PROFILES.map((profile) => (
-              <Chip
-                key={profile.name}
-                icon={profile.icon}
-                label={profile.name}
-                onClick={() => applyProfile(profile)}
-                sx={{
-                  px: 1.5, py: 2.5,
-                  bgcolor: '#0f172a',
-                  border: '1px solid #334155',
-                  '&:hover': { bgcolor: '#1e293b', borderColor: '#3b82f6' },
-                  flexDirection: 'row',
-                  gap: 0.5,
-                  '& .MuiChip-label': { whiteSpace: 'normal' },
-                }}
-                title={profile.description}
-              />
-            ))}
-          </Box>
-        </CardContent>
-      </Card>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h6" sx={{ mb: 0.5, fontWeight: 600 }}>Quick Profiles</Typography>
+        <Typography variant="body2" sx={{ color: '#64748b', mb: 2 }}>
+          Click a profile to auto-fill the form with realistic test data
+        </Typography>
+        <Grid container spacing={2}>
+          {LOAD_PROFILES.map((profile) => {
+            const isActive = activeProfile === profile.name;
+            return (
+              <Grid key={profile.name} size={{ xs: 12, sm: 4 }}>
+                <Card
+                  sx={{
+                    bgcolor: isActive ? '#0f2a4a' : '#1a2235',
+                    border: '1px solid',
+                    borderColor: isActive ? '#3b82f6' : '#2a3a52',
+                    transition: 'all 0.15s',
+                    '&:hover': { borderColor: '#3b82f6', bgcolor: '#0f2a4a' },
+                    position: 'relative',
+                  }}
+                >
+                  <CardActionArea onClick={() => applyProfile(profile)} sx={{ p: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <Box
+                        sx={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 1.5,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: isActive ? '#3b82f620' : '#243049',
+                          color: isActive ? '#3b82f6' : '#64748b',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {profile.icon}
+                      </Box>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: isActive ? '#e2e8f0' : '#94a3b8' }}>
+                            {profile.name}
+                          </Typography>
+                          {isActive && (
+                            <CheckCircleIcon sx={{ fontSize: 14, color: '#3b82f6' }} />
+                          )}
+                        </Box>
+                        <Typography variant="caption" sx={{ color: '#475569' }}>
+                          {profile.description}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </CardActionArea>
+                </Card>
+              </Grid>
+            );
+          })}
+        </Grid>
+      </Box>
 
       <Card sx={{ mb: 3 }}>
         <CardContent>
@@ -246,13 +300,18 @@ export function NewLoad() {
           </Typography>
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, md: 4 }}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Customer</InputLabel>
-                <Select value={form.customer_id} label="Customer" onChange={handleChange('customer_id')}>
+              <FormControl fullWidth size="small" error={!!errors.customer_id}>
+                <InputLabel>Customer *</InputLabel>
+                <Select value={form.customer_id} label="Customer *" onChange={handleChange('customer_id')}>
                   {CUSTOMERS.map((c) => (
                     <MenuItem key={c.value} value={c.value}>{c.label}</MenuItem>
                   ))}
                 </Select>
+                {errors.customer_id && (
+                  <Typography variant="caption" sx={{ color: '#ef4444', mt: 0.5, display: 'block' }}>
+                    {errors.customer_id}
+                  </Typography>
+                )}
               </FormControl>
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
@@ -300,7 +359,15 @@ export function NewLoad() {
               <TextField fullWidth size="small" label="Driver Name" value={form.driver_name} onChange={handleChange('driver_name')} />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth size="small" label="Driver Phone" value={form.driver_phone} onChange={handleChange('driver_phone')} />
+              <TextField
+                fullWidth
+                size="small"
+                label="Driver Phone"
+                value={form.driver_phone}
+                onChange={handleChange('driver_phone')}
+                error={!!errors.driver_phone}
+                helperText={errors.driver_phone}
+              />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
               <TextField fullWidth size="small" label="Trailer Number" value={form.trailer_number} onChange={handleChange('trailer_number')} />
