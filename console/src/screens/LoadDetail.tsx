@@ -24,6 +24,7 @@ import { useLoad, useLoads, useAgentRuns } from '@/api/hooks';
 import { mockEvents, mockMemories } from '@/api/mockData';
 import type { Load, AgentRun } from '@/types';
 import { stateColors, memoryTypeColors } from '@/theme';
+import { LOAD_STORAGE_KEY } from '@/api/client';
 
 function TabPanel({ children, value, index }: { children: React.ReactNode; value: number; index: number }) {
   return value === index ? <Box sx={{ pt: 3 }}>{children}</Box> : null;
@@ -67,7 +68,7 @@ export function LoadDetail() {
               variant="contained"
               startIcon={<PlayArrowIcon />}
               onClick={() => {
-                localStorage.setItem('freighthero_selected_load', load.load_id);
+                localStorage.setItem(LOAD_STORAGE_KEY, load.load_id);
                 navigate('/simulation');
               }}
               sx={{ mr: 1 }}

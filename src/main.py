@@ -5,7 +5,7 @@ import uvicorn
 from src.infrastructure.config import get_settings
 
 
-def main():
+def main() -> None:
     """Run the FreightHero Watchtower API server."""
     settings = get_settings()
     uvicorn.run(

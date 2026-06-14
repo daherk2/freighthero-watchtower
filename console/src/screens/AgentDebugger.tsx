@@ -16,7 +16,7 @@ import { useSearchParams } from 'react-router-dom';
 import { SectionHeader, StatusChip, LoadSelector } from '@/components/shared';
 // Direct fetch - React Query hooks had loading issues
 import type { AgentRun } from '@/types';
-import { authFetch } from '@/api/client';
+import { authFetch, LOAD_STORAGE_KEY } from '@/api/client';
 import { stateColors, memoryTypeColors } from '@/theme';
 
 interface Step {
@@ -112,7 +112,7 @@ const stepTypeColors: Record<string, string> = {
 export function AgentDebugger() {
   const [searchParams] = useSearchParams();
   const [selectedLoadId, setSelectedLoadId] = React.useState<string | null>(
-    searchParams.get('load_id') || localStorage.getItem('freighthero_selected_load') || null
+    searchParams.get('load_id') || localStorage.getItem(LOAD_STORAGE_KEY) || null
   );
   const [selectedRun, setSelectedRun] = React.useState(0);
   const [currentStep, setCurrentStep] = React.useState(0);
@@ -128,7 +128,7 @@ export function AgentDebugger() {
         const data = await res.json();
         // Fetch detailed agent runs to get tool_calls and memory_operations
         const detailedRuns = await Promise.all(
-          data.map(async (run: Record<string, unknown>) => {
+          data.map(async (run: AgentRun) => {
             try {
               const detailRes = await authFetch(`/api/v1/debugger/agent-runs/${run.run_id}`);
               const detail = await detailRes.json();
@@ -157,8 +157,8 @@ export function AgentDebugger() {
           })
         );
         setRuns(detailedRuns);
-      } catch (err) {
-        console.error('Failed to fetch agent runs:', err);
+      } catch {
+        // silently fall through — runs state stays empty
       } finally {
         setLoading(false);
       }

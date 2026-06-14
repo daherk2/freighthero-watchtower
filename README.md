@@ -2,16 +2,16 @@
 
 AI-powered freight operations agent that monitors deliveries, manages agent workflows, and provides intelligent automation for freight operations.
 
-## Acesso
+## Access
 
 | | URL |
 |---|---|
 | **Frontend (Console)** | https://console-production-da2a.up.railway.app |
 | **Backend (API)** | https://backend-production-89fb.up.railway.app |
 
-**Token de acesso:** `fh-wt-2026`
+**Access token:** `fh-wt-2026`
 
-Use o token acima na tela de login do console, ou no header `X-API-Key` para chamadas diretas à API:
+Use the token above on the console login screen, or pass it as the `X-API-Key` header for direct API calls:
 
 ```bash
 curl -H "X-API-Key: fh-wt-2026" https://backend-production-89fb.up.railway.app/api/v1/monitoring/dashboard

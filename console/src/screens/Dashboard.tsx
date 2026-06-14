@@ -30,6 +30,7 @@ import { StatCard, StateChip, StatusChip, TruncatedId, EmptyState } from '@/comp
 import { useDashboardStats, useLoads, useAgentRuns } from '@/api/hooks';
 import type { Load, AgentRun } from '@/types';
 import { stateColors } from '@/theme';
+import { LOAD_STORAGE_KEY } from '@/api/client';
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -196,7 +197,7 @@ export function Dashboard() {
                               startIcon={<PlayArrowIcon sx={{ fontSize: '0.75rem !important' }} />}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                localStorage.setItem('freighthero_selected_load', load.load_id);
+                                localStorage.setItem(LOAD_STORAGE_KEY, load.load_id);
                                 navigate('/simulation');
                               }}
                               sx={{ fontSize: '0.7rem', py: 0.25, px: 1, minWidth: 0 }}

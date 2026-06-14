@@ -203,7 +203,7 @@ export interface TraceNode {
   id: string;
   name: string;
   type: 'event' | 'workflow' | 'agent' | 'memory' | 'tool' | 'decision' | 'llm' | 'output';
-  data: Record<string, unknown>;
+  data: unknown;
   children?: TraceNode[];
   duration_ms?: number;
   timestamp: string;

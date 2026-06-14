@@ -12,12 +12,12 @@ import { StatusChip, StateChip, LoadSelector, TruncatedId } from '@/components/s
 import { useAgentRuns } from '@/api/hooks';
 import type { AgentRun } from '@/types';
 import { statusColors, memoryTypeColors } from '@/theme';
-import { authFetch } from '@/api/client';
+import { authFetch, LOAD_STORAGE_KEY } from '@/api/client';
 
 export function AgentViewer() {
   const navigate = useNavigate();
   const [selectedLoadId, setSelectedLoadId] = React.useState<string | null>(
-    localStorage.getItem('freighthero_selected_load') || null
+    localStorage.getItem(LOAD_STORAGE_KEY) || null
   );
   const [runs, setRuns] = React.useState<AgentRun[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -28,7 +28,7 @@ export function AgentViewer() {
         const url = selectedLoadId ? `/api/v1/monitoring/agent-runs?load_id=${selectedLoadId}` : '/api/v1/monitoring/agent-runs';
         const res = await authFetch(url);
         const data = await res.json();
-        const mapped = data.map((run: Record<string, unknown>) => ({
+        const mapped = data.map((run: AgentRun) => ({
           ...run,
           tool_calls: Array.isArray(run.tool_calls) ? run.tool_calls : [],
           memory_operations: Array.isArray(run.memory_operations) ? run.memory_operations : [],
@@ -40,8 +40,7 @@ export function AgentViewer() {
           state_after: run.state_after || null,
         }));
         setRuns(mapped);
-      } catch (err) {
-        console.error('Failed to fetch agent runs:', err);
+      } catch {
       } finally {
         setLoading(false);
       }
@@ -151,8 +150,7 @@ export function AgentRunDetail() {
           state_before: data.state_before || null,
           state_after: data.state_after || null,
         } as AgentRun);
-      } catch (err) {
-        console.error('Failed to fetch agent run detail:', err);
+      } catch {
       } finally {
         setLoading(false);
       }
@@ -247,7 +245,7 @@ export function AgentRunDetail() {
                   <Box key={i} sx={{ mb: 2, p: 2, bgcolor: '#0a0e17', borderRadius: 1.5, border: '1px solid #2a3a52' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                       <Chip label={tc.tool} size="small" sx={{ bgcolor: '#22c55e20', color: '#22c55e', fontFamily: 'monospace' }} />
-                      <Typography variant="caption" sx={{ color: '#64748b' }}>Step {i + 1} {(tc.created_at || tc.timestamp) ? `· ${new Date(tc.created_at || tc.timestamp).toLocaleTimeString()}` : ''}</Typography>
+                      <Typography variant="caption" sx={{ color: '#64748b' }}>Step {i + 1} {(tc.created_at ?? tc.timestamp) ? `· ${new Date(tc.created_at ?? tc.timestamp ?? '').toLocaleTimeString()}` : ''}</Typography>
                     </Box>
                     <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, minWidth: 0 }}>
                       <Box sx={{ minWidth: 0, overflow: 'hidden' }}>

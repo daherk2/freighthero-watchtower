@@ -211,13 +211,13 @@ class DatabaseManager:
         self.engine = create_async_engine(database_url, echo=False)
         self.async_session = async_sessionmaker(self.engine, class_=AsyncSession, expire_on_commit=False)
 
-    async def create_tables(self):
+    async def create_tables(self) -> None:
         """Create all database tables (preserves existing data)."""
         async with self.engine.begin() as conn:
             await conn.execute(text('CREATE EXTENSION IF NOT EXISTS vector'))
             await conn.run_sync(Base.metadata.create_all)
 
-    async def drop_tables(self):
+    async def drop_tables(self) -> None:
         """Drop all database tables (for testing)."""
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)
@@ -227,6 +227,6 @@ class DatabaseManager:
         async with self.async_session() as session:
             yield session
 
-    async def close(self):
+    async def close(self) -> None:
         """Close the database engine."""
         await self.engine.dispose()

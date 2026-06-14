@@ -15,7 +15,7 @@ import { SectionHeader, LoadSelector } from '@/components/shared';
 import { useMemoryState } from '@/api/hooks';
 import { authFetch } from '@/api/client';
 import { mockMemories } from '@/api/mockData';
-import type { MemoryEntry, Load } from '@/types';
+import type { MemoryEntry, Load, AgentRun } from '@/types';
 import { memoryTypeColors } from '@/theme';
 
 function TabPanel({ children, value, index }: { children: React.ReactNode; value: number; index: number }) {
@@ -41,7 +41,7 @@ export function MemoryExplorer() {
       setLoadMemories([]);
       return;
     }
-    fetch(`/api/v1/debugger/memory/load/${selectedLoadId}`)
+    authFetch(`/api/v1/debugger/memory/load/${selectedLoadId}`)
       .then((res) => res.json())
       .then(async (data) => {
         const mems = (data.memories || []) as MemoryEntry[];
@@ -53,7 +53,7 @@ export function MemoryExplorer() {
         try {
           const runsRes = await authFetch(`/api/v1/monitoring/agent-runs?load_id=${selectedLoadId}`);
           const runs = await runsRes.json();
-          const runsWithMemOps = runs.filter((r: Record<string, unknown>) => (r.memory_operations_count as number) > 0);
+          const runsWithMemOps = runs.filter((r: AgentRun) => (r.memory_operations_count ?? 0) > 0);
           const detailedMems: MemoryEntry[] = [];
           for (const run of runsWithMemOps) {
             try {

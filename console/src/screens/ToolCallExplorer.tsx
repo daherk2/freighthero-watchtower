@@ -30,7 +30,7 @@ export function ToolCallExplorer() {
         const data = await res.json();
         // Fetch detailed agent runs to get tool_calls
         const detailedRuns = await Promise.all(
-          data.map(async (run: Record<string, unknown>) => {
+          data.map(async (run: AgentRun) => {
             if ((run.tool_calls_count as number) > 0) {
               try {
                 const detailRes = await authFetch(`/api/v1/debugger/agent-runs/${run.run_id}`);
@@ -68,8 +68,8 @@ export function ToolCallExplorer() {
           })
         );
         setRuns(detailedRuns);
-      } catch (err) {
-        console.error('Failed to fetch agent runs:', err);
+      } catch {
+        // silently fall through — runs state stays empty
       } finally {
         setLoading(false);
       }

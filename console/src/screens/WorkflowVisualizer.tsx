@@ -20,7 +20,7 @@ import { useSearchParams } from 'react-router-dom';
 // Direct fetch - React Query hooks had loading issues
 import type { AgentRun } from '@/types';
 import { stateColors, statusColors } from '@/theme';
-import { authFetch } from '@/api/client';
+import { authFetch, LOAD_STORAGE_KEY } from '@/api/client';
 
 // Custom node components
 function EventNode({ data }: { data: Record<string, unknown> }) {
@@ -247,7 +247,7 @@ function buildFlowData(agentRuns: AgentRun[] | undefined) {
 
 export function WorkflowVisualizer() {
   const [searchParams] = useSearchParams();
-  const loadId = searchParams.get('load_id') || localStorage.getItem('freighthero_selected_load') || undefined;
+  const loadId = searchParams.get('load_id') || localStorage.getItem(LOAD_STORAGE_KEY) || undefined;
   const [agentRuns, setAgentRuns] = React.useState<AgentRun[]>([]);
   const [loading, setLoading] = React.useState(true);
 
@@ -257,7 +257,7 @@ export function WorkflowVisualizer() {
         const url = loadId ? `/api/v1/monitoring/agent-runs?load_id=${loadId}` : '/api/v1/monitoring/agent-runs';
         const res = await authFetch(url);
         const data = await res.json();
-        setAgentRuns(data.map((run: Record<string, unknown>) => ({
+        setAgentRuns(data.map((run: AgentRun) => ({
           ...run,
           tool_calls: run.tool_calls || [],
           memory_operations: run.memory_operations || [],
@@ -266,8 +266,8 @@ export function WorkflowVisualizer() {
           state_before: run.state_before || null,
           state_after: run.state_after || null,
         })));
-      } catch (err) {
-        console.error('Failed to fetch agent runs:', err);
+      } catch {
+        // silently fall through — agentRuns state stays empty
       } finally {
         setLoading(false);
       }

@@ -36,14 +36,17 @@ export function useHealth() {
 
 export function useLoads() {
   const [data, setData] = useState<unknown[]>([]);
-  useEffect(() => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  const refetch = useCallback(() => {
+    setIsLoading(true);
     loadsApi.list().then((res) => {
-      const mapped = Array.isArray(res) ? res : ((res as Record<string, unknown>).active_loads || []) as unknown[];
-      console.log('[useLoads] Got', (mapped as unknown[]).length, 'loads from API');
-      setData(mapped);
-    }).catch((err) => { console.error('[useLoads] Error:', err); });
+      setData(Array.isArray(res) ? res : []);
+    }).catch(() => {}).finally(() => setIsLoading(false));
   }, []);
-  return { data };
+
+  useEffect(() => { refetch(); }, [refetch]);
+  return { data, isLoading, refetch };
 }
 
 export function useLoad(id: string) {
@@ -91,7 +94,10 @@ export function useSubmitLoadUpdate() {
 
 export function useDashboardStats() {
   const [data, setData] = useState<DashboardStats | null>(null);
-  useEffect(() => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  const refetch = useCallback(() => {
+    setIsLoading(true);
     monitoringApi.dashboard().then((res) => {
       const raw = res as Record<string, unknown>;
       const mapped: DashboardStats = {
@@ -106,9 +112,11 @@ export function useDashboardStats() {
         error_rate_24h: typeof raw.error_rate_24h === 'number' ? raw.error_rate_24h : 0,
       };
       setData(mapped);
-    }).catch((err) => { console.error('[useDashboardStats] Error:', err); setData(mockDashboardStats); });
+    }).catch(() => { setData(mockDashboardStats); }).finally(() => setIsLoading(false));
   }, []);
-  return { data };
+
+  useEffect(() => { refetch(); }, [refetch]);
+  return { data, isLoading, refetch };
 }
 
 export function useAgentRuns(loadId?: string) {
@@ -117,19 +125,17 @@ export function useAgentRuns(loadId?: string) {
 
   const fetchRuns = useCallback(async () => {
     try {
-      const result = await monitoringApi.agentRuns(loadId) as Record<string, unknown>[];
-      const mapped = result.map((run) => ({
+      const result = await monitoringApi.agentRuns(loadId) as AgentRun[];
+      setData(result.map((run) => ({
         ...run,
-        tool_calls: run.tool_calls || (run.tool_calls_count != null ? [] : []),
-        memory_operations: run.memory_operations || (run.memory_operations_count != null ? [] : []),
-        customer_rules_applied: run.customer_rules_applied || [],
-        error: run.error || null,
-        state_before: run.state_before || null,
-        state_after: run.state_after || null,
-      }));
-            setData(mapped as AgentRun[]);
-    } catch (err) {
-      console.error('[useAgentRuns] Error:', err);
+        tool_calls: run.tool_calls ?? [],
+        memory_operations: run.memory_operations ?? [],
+        customer_rules_applied: run.customer_rules_applied ?? [],
+        error: run.error ?? null,
+        state_before: run.state_before ?? null,
+        state_after: run.state_after ?? null,
+      })));
+    } catch {
       setData(mockAgentRuns);
     } finally {
       setIsLoading(false);
@@ -227,7 +233,7 @@ export function useTraceTree(runId?: string) {
 // --- Customer Configs ---
 
 export function useCustomerConfigs() {
-  const [data, setData] = useState<unknown[]>(mockCustomerConfigs);
+  const [data, setData] = useState<Record<string, unknown>>(mockCustomerConfigs);
   useEffect(() => {
     setData(mockCustomerConfigs);
   }, []);

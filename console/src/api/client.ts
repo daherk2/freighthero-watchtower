@@ -1,6 +1,7 @@
 const API_BASE = '/api/v1';
 
 export const AUTH_KEY = 'freighthero_token';
+export const LOAD_STORAGE_KEY = 'freighthero_selected_load';
 
 /** Drop-in replacement for fetch() that injects the stored API key. */
 export function authFetch(input: string, init?: RequestInit): Promise<Response> {

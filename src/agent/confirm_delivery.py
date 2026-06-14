@@ -3,8 +3,11 @@
 Implements the confirm delivery workflow as a LangGraph StateGraph.
 """
 
-from typing import Annotated, TypedDict, Literal
+import logging
+from typing import Annotated, Any, TypedDict, Literal
 from datetime import datetime, timezone
+
+logger = logging.getLogger(__name__)
 
 from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
@@ -65,7 +68,7 @@ class ConfirmDeliveryState(TypedDict, total=False):
     pod_status: str  # collected, pending, not_applicable
 
 
-def create_confirm_delivery_workflow(llm=None, tools=None):
+def create_confirm_delivery_workflow(llm: Any = None, tools: Any = None) -> Any:
     """Create the Confirm Delivery LangGraph workflow.
 
     Args:
@@ -119,7 +122,7 @@ def create_confirm_delivery_workflow(llm=None, tools=None):
                         ],
                     }
             except Exception:
-                pass  # Fall through to keyword matching
+                logger.exception("LLM classification failed, falling back to keyword matching")
 
         # Check for broker messages first
         if event_type == EventType.INBOUND_COMMUNICATION.value:
@@ -258,13 +261,13 @@ def create_confirm_delivery_workflow(llm=None, tools=None):
         # Helper to determine the communication tool based on inbound channel
         inbound_channel = event_data.get("channel", "sms")
 
-        def _send_to_driver(msg: str):
+        def _send_to_driver(msg: str) -> dict[str, Any]:
             """Return the appropriate tool call dict for sending a message to the driver."""
             if inbound_channel == "email":
                 return {"tool": "send_email", "arguments": {"recipient": "driver", "subject": "Load Update", "body": msg}}
             return {"tool": "send_sms", "arguments": {"recipient": "driver", "message": msg}}
 
-        def _escalate(issue_type: str, details: str, escalation_channel: str):
+        def _escalate(issue_type: str, details: str, escalation_channel: str) -> list[dict[str, Any]]:
             """Return tool call dicts for escalating to ops based on channel."""
             calls = []
             calls.append({"tool": "create_issue", "arguments": {"title": issue_type, "description": details, "issue_type": issue_type}})

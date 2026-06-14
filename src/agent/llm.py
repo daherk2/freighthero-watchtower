@@ -11,7 +11,7 @@ except ImportError:
 from src.infrastructure.config import get_settings
 
 
-def get_llm():
+def get_llm() -> "ChatOpenAI":
     """Get the configured LLM instance.
 
     When OPENAI_BASE_URL is set (e.g. to OpenRouter),

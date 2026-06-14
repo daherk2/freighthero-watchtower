@@ -43,8 +43,7 @@ export function LoadSelector({ onLoadChange, showViewDetails, navigate }: LoadSe
         localStorage.removeItem(STORAGE_KEY);
         setSelectedLoadId('');
       }
-    } catch (err) {
-      console.error('Failed to fetch loads:', err);
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -104,8 +103,8 @@ export function LoadSelector({ onLoadChange, showViewDetails, navigate }: LoadSe
             '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2a3a52' },
           }}
           MenuProps={{
-            PaperProps: {
-              sx: { bgcolor: '#1a2235', maxHeight: 300 },
+            slotProps: {
+              paper: { sx: { bgcolor: '#1a2235', maxHeight: 300 } },
             },
           }}
         >
@@ -117,7 +116,7 @@ export function LoadSelector({ onLoadChange, showViewDetails, navigate }: LoadSe
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <StateChip state={load.current_state} />
                 <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
-                  {load.load_data?.po_number || load.external_load_id || load.load_id.slice(0, 12)}...
+                  {load.po_number || load.external_load_id || load.load_id.slice(0, 12)}...
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#64748b' }}>
                   {load.customer_id}

@@ -10,7 +10,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { SectionHeader, LoadSelector } from '@/components/shared';
 // Direct fetch - React Query hooks had loading issues
-import type { TraceNode } from '@/types';
+import type { TraceNode, AgentRun, ToolCallRecord, MemoryOperationRecord } from '@/types';
 import { authFetch } from '@/api/client';
 
 const nodeTypeColors: Record<string, string> = {
@@ -151,7 +151,7 @@ export function TraceExplorer() {
 
         // Fetch details for runs that have tool_calls or memory_operations
         const detailedRuns = await Promise.all(
-          runs.map(async (run: Record<string, unknown>) => {
+          runs.map(async (run: AgentRun) => {
             const hasDetails = (run.tool_calls_count as number) > 0 || (run.memory_operations_count as number) > 0;
             if (!hasDetails) return run;
             try {
@@ -165,12 +165,12 @@ export function TraceExplorer() {
         );
 
         // Build trace tree from agent runs
-        const trees: TraceNode[] = detailedRuns.map((run: Record<string, unknown>, idx: number) => {
+        const trees: TraceNode[] = detailedRuns.map((run: AgentRun, idx: number) => {
           const children: TraceNode[] = [];
 
           // Add tool calls as children
-          const toolCalls = (run.tool_calls || []) as Record<string, unknown>[];
-          toolCalls.forEach((tc: Record<string, unknown>, i: number) => {
+          const toolCalls: ToolCallRecord[] = run.tool_calls || [];
+          toolCalls.forEach((tc: ToolCallRecord, i: number) => {
             children.push({
               id: `tool-${idx}-${i}`,
               name: String(tc.tool || 'unknown'),
@@ -186,8 +186,8 @@ export function TraceExplorer() {
           });
 
           // Add memory operations as children
-          const memOps = (run.memory_operations || []) as Record<string, unknown>[];
-          memOps.forEach((mem: Record<string, unknown>, i: number) => {
+          const memOps: MemoryOperationRecord[] = run.memory_operations || [];
+          memOps.forEach((mem: MemoryOperationRecord, i: number) => {
             children.push({
               id: `memory-${idx}-${i}`,
               name: String(mem.memory_type || 'memory'),
@@ -215,8 +215,7 @@ export function TraceExplorer() {
         });
 
         setTreeArray(trees);
-      } catch (err) {
-        console.error('Failed to fetch trace data:', err);
+      } catch {
       } finally {
         setLoading(false);
       }

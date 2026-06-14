@@ -4,8 +4,11 @@ Implements the on-route-to-delivery / ETA checkpoint workflow
 as a LangGraph StateGraph.
 """
 
-from typing import Annotated, TypedDict, Literal
+import logging
+from typing import Annotated, Any, TypedDict, Literal
 from datetime import datetime, timezone
+
+logger = logging.getLogger(__name__)
 
 from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
@@ -61,7 +64,7 @@ class ETACheckpointState(TypedDict, total=False):
     escalation_sent: bool
 
 
-def create_eta_checkpoint_workflow(llm=None, tools=None):
+def create_eta_checkpoint_workflow(llm: Any = None, tools: Any = None) -> Any:
     """Create the ETA Checkpoint LangGraph workflow.
 
     Args:
@@ -113,7 +116,7 @@ def create_eta_checkpoint_workflow(llm=None, tools=None):
                         ],
                     }
             except Exception:
-                pass  # Fall through to keyword matching
+                logger.exception("LLM classification failed, falling back to keyword matching")
 
         # Fallback: keyword matching
         if event_type == EventType.TRACKING.value:
@@ -185,13 +188,13 @@ def create_eta_checkpoint_workflow(llm=None, tools=None):
         # Helper to determine the communication tool based on inbound channel
         inbound_channel = event_data.get("channel", "sms")
 
-        def _send_to_driver(msg: str):
+        def _send_to_driver(msg: str) -> dict[str, Any]:
             """Return the appropriate tool call dict for sending a message to the driver."""
             if inbound_channel == "email":
                 return {"tool": "send_email", "arguments": {"recipient": "driver", "subject": "Load Update", "body": msg}}
             return {"tool": "send_sms", "arguments": {"recipient": "driver", "message": msg}}
 
-        def _escalate(issue_type: str, details: str, escalation_channel: str):
+        def _escalate(issue_type: str, details: str, escalation_channel: str) -> list[dict[str, Any]]:
             """Return tool call dicts for escalating to ops based on channel."""
             calls = []
             calls.append({"tool": "create_issue", "arguments": {"title": issue_type, "description": details, "issue_type": issue_type}})
@@ -201,7 +204,7 @@ def create_eta_checkpoint_workflow(llm=None, tools=None):
                 calls.append({"tool": "send_slack_message", "arguments": {"audience": "internal", "message": details, "escalation_type": issue_type}})
             return calls
 
-        def _create_missing_info_task(details: str, missing_action: str, escalation_channel: str):
+        def _create_missing_info_task(details: str, missing_action: str, escalation_channel: str) -> list[dict[str, Any]]:
             """Return tool call dicts for missing load info based on customer config."""
             calls = []
             calls.append({"tool": "create_task", "arguments": {"title": "Missing load info", "description": details, "task_type": "missing_load_info"}})

@@ -1,8 +1,12 @@
 """Celery task queue configuration and tasks."""
 
+import logging
+
 from celery import Celery
 
 from src.infrastructure.config import get_settings
+
+logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
@@ -31,7 +35,7 @@ celery_app.conf.update(
 
 
 @celery_app.task(bind=True, max_retries=3, default_retry_delay=5)
-def process_event(self, event_id: str, load_id: str):
+def process_event(self, event_id: str, load_id: str) -> None:
     """Process an incoming event through the event processor."""
     import asyncio
     from src.infrastructure.database import DatabaseManager
@@ -57,7 +61,7 @@ def process_event(self, event_id: str, load_id: str):
 
 
 @celery_app.task(bind=True, max_retries=2, default_retry_delay=10)
-def run_agent_workflow(self, event_id: str, load_id: str, workflow: str):
+def run_agent_workflow(self, event_id: str, load_id: str, workflow: str) -> None:
     """Run an agent workflow for an event."""
     import asyncio
     from src.infrastructure.database import DatabaseManager
@@ -88,7 +92,7 @@ def run_agent_workflow(self, event_id: str, load_id: str, workflow: str):
 
 
 @celery_app.task(bind=True, max_retries=2)
-def fire_timer(self, timer_id: str, load_id: str):
+def fire_timer(self, timer_id: str, load_id: str) -> None:
     """Fire a scheduled timer callback."""
     import asyncio
     from src.infrastructure.database import DatabaseManager
@@ -114,7 +118,7 @@ def fire_timer(self, timer_id: str, load_id: str):
 
 
 @celery_app.task
-def memory_maintenance():
+def memory_maintenance() -> None:
     """Run periodic memory maintenance tasks (summarization, pruning, etc.)."""
     import asyncio
     from src.infrastructure.database import DatabaseManager
@@ -133,4 +137,4 @@ def memory_maintenance():
     try:
         asyncio.run(_maintain())
     except Exception:
-        pass  # Log but don't retry maintenance tasks
+        logger.exception("Memory maintenance task failed")

@@ -39,7 +39,7 @@ export function Login({ onAuth }: LoginProps) {
             FreightHero Watchtower
           </Typography>
           <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
-            Entre com o token de acesso
+            Enter your access token to continue
           </Typography>
           <form onSubmit={handleSubmit}>
             <TextField
@@ -49,7 +49,7 @@ export function Login({ onAuth }: LoginProps) {
               value={token}
               onChange={(e) => { setToken(e.target.value); setError(false); }}
               error={error}
-              helperText={error ? 'Token inválido' : ''}
+              helperText={error ? 'Invalid token' : ''}
               sx={{
                 mb: 2,
                 '& .MuiOutlinedInput-root': { color: '#e2e8f0', '& fieldset': { borderColor: '#2a3a52' } },
@@ -64,7 +64,7 @@ export function Login({ onAuth }: LoginProps) {
               disabled={!token}
               sx={{ bgcolor: '#3b82f6', '&:hover': { bgcolor: '#2563eb' }, py: 1.25 }}
             >
-              Entrar
+              Sign in
             </Button>
           </form>
         </CardContent>

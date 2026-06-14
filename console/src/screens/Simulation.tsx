@@ -281,8 +281,7 @@ export function Simulation() {
     try {
       const data = await loadsApi.list() as LoadOption[];
       setLoads(data);
-    } catch (err) {
-      console.error('Failed to fetch loads:', err);
+    } catch {
     } finally {
       setLoadsLoading(false);
     }

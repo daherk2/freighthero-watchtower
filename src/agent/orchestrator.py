@@ -5,9 +5,12 @@ It selects the appropriate workflow, initializes context, and
 manages the full execution lifecycle.
 """
 
+import logging
 import uuid
 from datetime import datetime, timezone
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from src.domain.enums import ConfirmDeliveryBranch, CustomerId, EventType, LoadState, SOPBranch
 from src.domain.exceptions import LoadNotFoundError, InvalidEventError
@@ -155,7 +158,7 @@ class AgentOrchestrator:
                         tags=mem_op.get("tags", []),
                     )
                 except Exception:
-                    pass  # Log but don't fail on memory errors
+                    logger.exception("Failed to persist memory operation")
 
         # 7. Save agent run record
         run_id = str(uuid.uuid4())
@@ -232,7 +235,7 @@ class AgentOrchestrator:
             "status": "completed",
         }
 
-    async def get_workflow(self, workflow: str):
+    async def get_workflow(self, workflow: str) -> Any:
         """Get a compiled workflow by name.
 
         Args:

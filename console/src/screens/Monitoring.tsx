@@ -24,7 +24,7 @@ import { SectionHeader, StatCard } from '@/components/shared';
 // Direct fetch - React Query hooks had loading issues
 import type { AgentRun } from '@/types';
 import { mockMemories } from '@/api/mockData';
-import { authFetch } from '@/api/client';
+import { authFetch, LOAD_STORAGE_KEY } from '@/api/client';
 
 echarts.use([
   BarChart, LineChart, PieChart, GaugeChart, SankeyChart, HeatmapChart,
@@ -44,7 +44,7 @@ const chartTheme = {
 
 export function Monitoring() {
   const [searchParams] = useSearchParams();
-  const loadId = searchParams.get('load_id') || localStorage.getItem('freighthero_selected_load') || undefined;
+  const loadId = searchParams.get('load_id') || localStorage.getItem(LOAD_STORAGE_KEY) || undefined;
   const [tab, setTab] = React.useState(0);
   const [stats, setStats] = React.useState({
     active_loads: 0, running_agents: 0, failed_agents: 0,
@@ -64,7 +64,7 @@ export function Monitoring() {
         const statsData = await statsRes.json();
         const runsData = await runsRes.json();
         setStats(statsData);
-        setAgentRuns(runsData.map((run: Record<string, unknown>) => ({
+        setAgentRuns(runsData.map((run: AgentRun) => ({
           ...run,
           tool_calls: run.tool_calls || [],
           memory_operations: run.memory_operations || [],
@@ -73,8 +73,7 @@ export function Monitoring() {
           state_before: run.state_before || null,
           state_after: run.state_after || null,
         })));
-      } catch (err) {
-        console.error('Failed to fetch monitoring data:', err);
+      } catch {
       } finally {
         setLoading(false);
       }
