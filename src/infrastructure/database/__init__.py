@@ -212,11 +212,9 @@ class DatabaseManager:
         self.async_session = async_sessionmaker(self.engine, class_=AsyncSession, expire_on_commit=False)
 
     async def create_tables(self):
-        """Create all database tables."""
+        """Create all database tables (preserves existing data)."""
         async with self.engine.begin() as conn:
             await conn.execute(text('CREATE EXTENSION IF NOT EXISTS vector'))
-            # Drop and recreate to apply schema changes (safe on fresh deploy)
-            await conn.run_sync(Base.metadata.drop_all)
             await conn.run_sync(Base.metadata.create_all)
 
     async def drop_tables(self):
