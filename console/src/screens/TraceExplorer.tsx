@@ -11,6 +11,7 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { SectionHeader, LoadSelector } from '@/components/shared';
 // Direct fetch - React Query hooks had loading issues
 import type { TraceNode } from '@/types';
+import { authFetch } from '@/api/client';
 
 const nodeTypeColors: Record<string, string> = {
   event: '#f59e0b',
@@ -140,7 +141,7 @@ export function TraceExplorer() {
       try {
         // Fetch agent runs and build trace tree from real data
         const url = selectedLoadId ? `/api/v1/monitoring/agent-runs?load_id=${selectedLoadId}` : '/api/v1/monitoring/agent-runs';
-        const res = await fetch(url);
+        const res = await authFetch(url);
         const runs = await res.json();
 
         if (runs.length === 0) {
@@ -154,7 +155,7 @@ export function TraceExplorer() {
             const hasDetails = (run.tool_calls_count as number) > 0 || (run.memory_operations_count as number) > 0;
             if (!hasDetails) return run;
             try {
-              const detailRes = await fetch(`/api/v1/debugger/agent-runs/${run.run_id}`);
+              const detailRes = await authFetch(`/api/v1/debugger/agent-runs/${run.run_id}`);
               const detail = await detailRes.json();
               return { ...run, tool_calls: detail.tool_calls || [], memory_operations: detail.memory_operations || [] };
             } catch {

@@ -20,6 +20,7 @@ import { useSearchParams } from 'react-router-dom';
 // Direct fetch - React Query hooks had loading issues
 import type { AgentRun } from '@/types';
 import { stateColors, statusColors } from '@/theme';
+import { authFetch } from '@/api/client';
 
 // Custom node components
 function EventNode({ data }: { data: Record<string, unknown> }) {
@@ -254,7 +255,7 @@ export function WorkflowVisualizer() {
     const fetchRuns = async () => {
       try {
         const url = loadId ? `/api/v1/monitoring/agent-runs?load_id=${loadId}` : '/api/v1/monitoring/agent-runs';
-        const res = await fetch(url);
+        const res = await authFetch(url);
         const data = await res.json();
         setAgentRuns(data.map((run: Record<string, unknown>) => ({
           ...run,

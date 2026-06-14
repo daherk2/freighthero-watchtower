@@ -13,6 +13,7 @@ import LinearProgress from '@mui/material/LinearProgress';
 import SearchIcon from '@mui/icons-material/Search';
 import { SectionHeader, LoadSelector } from '@/components/shared';
 import { useMemoryState } from '@/api/hooks';
+import { authFetch } from '@/api/client';
 import { mockMemories } from '@/api/mockData';
 import type { MemoryEntry, Load } from '@/types';
 import { memoryTypeColors } from '@/theme';
@@ -50,13 +51,13 @@ export function MemoryExplorer() {
         }
         // Fallback: extract memory operations from agent runs
         try {
-          const runsRes = await fetch(`/api/v1/monitoring/agent-runs?load_id=${selectedLoadId}`);
+          const runsRes = await authFetch(`/api/v1/monitoring/agent-runs?load_id=${selectedLoadId}`);
           const runs = await runsRes.json();
           const runsWithMemOps = runs.filter((r: Record<string, unknown>) => (r.memory_operations_count as number) > 0);
           const detailedMems: MemoryEntry[] = [];
           for (const run of runsWithMemOps) {
             try {
-              const detailRes = await fetch(`/api/v1/debugger/agent-runs/${run.run_id}`);
+              const detailRes = await authFetch(`/api/v1/debugger/agent-runs/${run.run_id}`);
               const detail = await detailRes.json();
               for (const op of (detail.memory_operations || [])) {
                 detailedMems.push({

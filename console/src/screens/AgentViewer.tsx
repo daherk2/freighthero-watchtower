@@ -12,6 +12,7 @@ import { StatusChip, StateChip, LoadSelector, TruncatedId } from '@/components/s
 import { useAgentRuns } from '@/api/hooks';
 import type { AgentRun } from '@/types';
 import { statusColors, memoryTypeColors } from '@/theme';
+import { authFetch } from '@/api/client';
 
 export function AgentViewer() {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ export function AgentViewer() {
     const fetchRuns = async () => {
       try {
         const url = selectedLoadId ? `/api/v1/monitoring/agent-runs?load_id=${selectedLoadId}` : '/api/v1/monitoring/agent-runs';
-        const res = await fetch(url);
+        const res = await authFetch(url);
         const data = await res.json();
         const mapped = data.map((run: Record<string, unknown>) => ({
           ...run,
@@ -133,7 +134,7 @@ export function AgentRunDetail() {
     if (!id) return;
     const fetchDetail = async () => {
       try {
-        const res = await fetch(`/api/v1/debugger/agent-runs/${id}`);
+        const res = await authFetch(`/api/v1/debugger/agent-runs/${id}`);
         if (!res.ok) {
           setRun(null);
           return;

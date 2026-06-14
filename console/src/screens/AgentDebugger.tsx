@@ -16,6 +16,7 @@ import { useSearchParams } from 'react-router-dom';
 import { SectionHeader, StatusChip, LoadSelector } from '@/components/shared';
 // Direct fetch - React Query hooks had loading issues
 import type { AgentRun } from '@/types';
+import { authFetch } from '@/api/client';
 import { stateColors, memoryTypeColors } from '@/theme';
 
 interface Step {
@@ -123,13 +124,13 @@ export function AgentDebugger() {
     const fetchRuns = async () => {
       try {
         const url = selectedLoadId ? `/api/v1/monitoring/agent-runs?load_id=${selectedLoadId}` : '/api/v1/monitoring/agent-runs';
-        const res = await fetch(url);
+        const res = await authFetch(url);
         const data = await res.json();
         // Fetch detailed agent runs to get tool_calls and memory_operations
         const detailedRuns = await Promise.all(
           data.map(async (run: Record<string, unknown>) => {
             try {
-              const detailRes = await fetch(`/api/v1/debugger/agent-runs/${run.run_id}`);
+              const detailRes = await authFetch(`/api/v1/debugger/agent-runs/${run.run_id}`);
               const detail = await detailRes.json();
               return {
                 ...run,

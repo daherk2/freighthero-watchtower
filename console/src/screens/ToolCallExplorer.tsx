@@ -10,6 +10,7 @@ import Grid from '@mui/material/Grid';
 import SearchIcon from '@mui/icons-material/Search';
 import { SectionHeader, LoadSelector } from '@/components/shared';
 import type { AgentRun } from '@/types';
+import { authFetch } from '@/api/client';
 
 export function ToolCallExplorer() {
   const [selectedLoadId, setSelectedLoadId] = React.useState<string | null>(null);
@@ -25,14 +26,14 @@ export function ToolCallExplorer() {
         // Handle both null and empty string as "no filter"
         const hasLoadFilter = selectedLoadId && selectedLoadId.trim() !== '';
         const url = hasLoadFilter ? `/api/v1/monitoring/agent-runs?load_id=${selectedLoadId}` : '/api/v1/monitoring/agent-runs';
-        const res = await fetch(url);
+        const res = await authFetch(url);
         const data = await res.json();
         // Fetch detailed agent runs to get tool_calls
         const detailedRuns = await Promise.all(
           data.map(async (run: Record<string, unknown>) => {
             if ((run.tool_calls_count as number) > 0) {
               try {
-                const detailRes = await fetch(`/api/v1/debugger/agent-runs/${run.run_id}`);
+                const detailRes = await authFetch(`/api/v1/debugger/agent-runs/${run.run_id}`);
                 const detail = await detailRes.json();
                 return {
                   ...run,

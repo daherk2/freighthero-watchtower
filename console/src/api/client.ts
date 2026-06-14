@@ -2,6 +2,15 @@ const API_BASE = '/api/v1';
 
 export const AUTH_KEY = 'freighthero_token';
 
+/** Drop-in replacement for fetch() that injects the stored API key. */
+export function authFetch(input: string, init?: RequestInit): Promise<Response> {
+  const token = localStorage.getItem(AUTH_KEY) || '';
+  return fetch(input, {
+    ...init,
+    headers: { 'X-API-Key': token, ...init?.headers },
+  });
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const token = localStorage.getItem(AUTH_KEY) || '';
   const res = await fetch(`${API_BASE}${path}`, {

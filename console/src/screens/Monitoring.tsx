@@ -24,6 +24,7 @@ import { SectionHeader, StatCard } from '@/components/shared';
 // Direct fetch - React Query hooks had loading issues
 import type { AgentRun } from '@/types';
 import { mockMemories } from '@/api/mockData';
+import { authFetch } from '@/api/client';
 
 echarts.use([
   BarChart, LineChart, PieChart, GaugeChart, SankeyChart, HeatmapChart,
@@ -57,8 +58,8 @@ export function Monitoring() {
     const fetchData = async () => {
       try {
         const [statsRes, runsRes] = await Promise.all([
-          fetch('/api/v1/monitoring/dashboard'),
-          fetch(loadId ? `/api/v1/monitoring/agent-runs?load_id=${loadId}` : '/api/v1/monitoring/agent-runs'),
+          authFetch('/api/v1/monitoring/dashboard'),
+          authFetch(loadId ? `/api/v1/monitoring/agent-runs?load_id=${loadId}` : '/api/v1/monitoring/agent-runs'),
         ]);
         const statsData = await statsRes.json();
         const runsData = await runsRes.json();
