@@ -61,7 +61,7 @@ logs/
 # Misc
 *.md
 !README.md
-docs/
+!docs/**
 tests/
 test/
 *.txt
