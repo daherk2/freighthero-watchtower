@@ -62,8 +62,8 @@ logs/
 *.md
 !README.md
 !docs/**
-tests/
-test/
+!tests/**
+!test/**
 *.txt
 
 # Node (for frontend)
